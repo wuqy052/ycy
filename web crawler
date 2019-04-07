@@ -1,0 +1,16 @@
+import requests
+import re
+import numpy as np
+# bilibili keyword="杨超越"
+url = 'https://search.bilibili.com/all?keyword=%E6%9D%A8%E8%B6%85%E8%B6%8A&from_source=banner_search&spm_id_from=333.334.b_62616e6e65725f6c696e6b.1'
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'}
+html = requests.get(url, headers=headers)
+html.encoding = 'utf-8'
+patter = re.compile('target="_blank" title="(.*?杨超越.*?)"')
+patter1= re.compile('class="up-name">(.*?)<')
+titles = re.findall(patter, html.text)
+authors= re.findall(patter1, html.text)
+m1=np.arange(0,len(titles),1)
+#print(html.text)
+for i in m1:
+   print('吸花一时爽，一直吸花一直爽!',titles[i],'|作者:',authors[i])
