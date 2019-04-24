@@ -1,0 +1,37 @@
+import cv2 as cv
+import matplotlib.pyplot as plt
+from bs4 import BeautifulSoup
+import requests
+import re
+from random import randrange
+'''
+This is to show a picture randomly picked from a particular picturebase
+'''
+#define a single piece of picture
+class ycybase:
+    def __init__(self, number, namelink, heightlist, widthlist):
+        self.number=number
+        self.name=namelink[number][0]
+        self.size=(int(heightlist[number]),int(widthlist[number]))
+        self.link=namelink[number][1]
+        
+#search pictures
+url='https://www.hexuexiao.cn/search-%E6%9D%A8%E8%B6%85%E8%B6%8A?'
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36'}
+html = requests.get(url, headers=headers)
+html.encoding = 'utf-8'
+soup = BeautifulSoup(html.text,'lxml')
+img=soup.find_all('img')
+imgtext=str(img)
+imgnamelink=re.findall(re.compile('alt="(.*?)".*?src="(.*?)"'),imgtext)
+imgheight=re.findall(re.compile('height="(\d+)"'),imgtext)
+imgwidth=re.findall(re.compile('width="(\d+)"'),imgtext)
+
+#randomly pick a picture
+urlshow=imgnamelink[randrange(0,len(imgnamelink))][1]
+
+#let's see our girl!
+cap=cv.VideoCapture(urlshow)
+ret,img=cap.read()
+plt.imshow(cv.cvtColor(img,cv.COLOR_BGR2RGB))
+plt.axis('off')
