@@ -1,0 +1,103 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Apr 25 17:21:09 2019
+
+@author: wuqy0
+"""
+
+def showmeycy():
+    import cv2 as cv
+    import matplotlib
+    from bs4 import BeautifulSoup
+    import requests
+    import re
+    from random import randrange
+    import tkinter as Tk
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+    from matplotlib.figure import Figure
+    '''
+    This is to show a picture randomly picked from a particular picturebase
+    and print its basic information
+    '''
+
+    # creat a window
+    matplotlib.use('TkAgg')
+    root =Tk.Tk()
+    root.title("Which YCY?")
+    
+    # search pictures
+    url='https://www.hexuexiao.cn/search-%E6%9D%A8%E8%B6%85%E8%B6%8A?'
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36'}
+    html = requests.get(url, headers=headers)
+    html.encoding = 'utf-8'
+    soup = BeautifulSoup(html.text,'lxml')
+    img=soup.find_all('img')
+    imgtext=str(img)
+    imgnamelink=re.findall(re.compile('alt="(.*?)".*?src="(.*?)"'),imgtext)
+    imgheight=re.findall(re.compile('height="(\d+)"'),imgtext)
+    imgwidth=re.findall(re.compile('width="(\d+)"'),imgtext)
+    
+    #randomly pick a picture
+    number=randrange(0,len(imgnamelink))
+    
+    class ycybase:
+        def __init__(self, number, namelink, heightlist, widthlist):
+            self.number=number
+            self.name=namelink[number][0]
+            self.size=(int(heightlist[number]),int(widthlist[number]))
+            self.link=namelink[number][1]
+            self.tempnamelink=namelink
+            self.tempheightlist=heightlist
+            self.tempwidthlist=widthlist
+            
+        # print information of the picture
+        def printinfo(self):
+            print('The name of the picture:',self.name)
+            print('The size of the picture:',self.size)
+            print('You can see it on:',self.link)
+        
+        # randomize the pool
+        def randomizepic(self):
+            number=randrange(0,len(self.tempnamelink))
+            self.number=number
+            self.name=self.tempnamelink[number][0]
+            self.size=(int(self.tempheightlist[number]),int(self.tempwidthlist[number]))
+            self.link=self.tempnamelink[number][1]
+         
+    # let's see our girl!
+    ycy=ycybase(number,imgnamelink,imgheight,imgwidth)
+
+    # picture download
+    cap=cv.VideoCapture(ycy.link)
+    ret,img=cap.read()
+    
+    # picture size and quality
+    f =Figure(figsize=(1.5,1.5), dpi=350)
+    a = f.add_subplot(111)
+    
+    # draw the picture
+    a.imshow(cv.cvtColor(img,cv.COLOR_BGR2RGB))
+    a.axis('off')
+    
+    # change the picture function
+    def drawnew():
+        a.clear()
+        cap1=cv.VideoCapture(ycy.link)
+        ret1,img1=cap1.read()
+        a.imshow(cv.cvtColor(img1,cv.COLOR_BGR2RGB))
+        a.axis('off')
+        canvas.draw()   
+    
+    # put the picture on tKinter
+    canvas =FigureCanvasTkAgg(f, master=root)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
+    
+    #draw buttons
+    Tk.Button(root, text ="Info", command = ycy.printinfo).pack()
+    Tk.Button(root, text ="shuffle", command=ycy.randomizepic).pack()
+    Tk.Button(root, text ="draw new", command=drawnew).pack()
+    root.mainloop()
+
+#showme anyway
+showmeycy()
